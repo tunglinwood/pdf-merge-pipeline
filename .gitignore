@@ -1,0 +1,9 @@
+config/pipeline.env
+**/config/pipeline.env
+__pycache__/
+*.pyc
+*.pdf
+!docs/*.pdf
+runs/
+samples/
+converted/
