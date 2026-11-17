@@ -1,13 +1,24 @@
 // 上传测试文件到 FastGPT 对话文件区，并用 /api/v1/chat/completions 跑一次真实链路。
-// 用法: node run_test.mjs <appId> <outPrefix> <file1> <file2> ...
+// 用法: node tools/run_app_test.mjs <appId> <outPrefix> <file1> <file2> ...
 // 说明：对话可能跑好几分钟（沙箱里装 LibreOffice 等），所以用 node:https 直连，不受 fetch 300s 头超时限制。
+//
+// 依赖路径可用环境变量覆盖（默认按 fastgpt-mcp 的标准安装位置推断）：
+//   FASTGPT_MCP_DIR     fastgpt-mcp 仓库目录，默认 ${HOME}/workspace/fastgpt-mcp
+//   FASTGPT_MCP_ENV     凭据文件，默认 ${HOME}/.config/fastgpt-mcp/env
+//   FASTGPT_MCP_CONFIG  配置文件，默认 ${FASTGPT_MCP_DIR}/config/config.json
 import { readFileSync, writeFileSync } from 'node:fs';
 import { basename, extname } from 'node:path';
+import { homedir } from 'node:os';
 import https from 'node:https';
-import { FastGPTSession } from '/home/huasmex/workspace/fastgpt-mcp/dist/session.js';
+
+const MCP_DIR = process.env.FASTGPT_MCP_DIR || `${homedir()}/workspace/fastgpt-mcp`;
+const MCP_ENV = process.env.FASTGPT_MCP_ENV || `${homedir()}/.config/fastgpt-mcp/env`;
+const MCP_CONFIG = process.env.FASTGPT_MCP_CONFIG || `${MCP_DIR}/config/config.json`;
+
+const { FastGPTSession } = await import(`${MCP_DIR}/dist/session.js`);
 
 const env = Object.fromEntries(
-  readFileSync('/home/huasmex/.config/fastgpt-mcp/env', 'utf8')
+  readFileSync(MCP_ENV, 'utf8')
     .split('\n')
     .filter((l) => l.includes('='))
     .map((l) => {
@@ -15,7 +26,7 @@ const env = Object.fromEntries(
       return [l.slice(0, i).trim(), l.slice(i + 1).trim()];
     })
 );
-const cfg = JSON.parse(readFileSync('/home/huasmex/workspace/fastgpt-mcp/config/config.json', 'utf8'));
+const cfg = JSON.parse(readFileSync(MCP_CONFIG, 'utf8'));
 const session = new FastGPTSession({ ...cfg, passwordDigest: env.FASTGPT_PASSWORD_SHA256 });
 const BASE = cfg.baseUrl.replace(/\/+$/, '');
 

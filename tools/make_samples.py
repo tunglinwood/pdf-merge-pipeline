@@ -22,12 +22,21 @@ from pathlib import Path
 
 
 def make_png(path, width, height):
-    """不依赖第三方库手写一张纯色 PNG。"""
+    """不依赖第三方库手写一张纯色 PNG。
+
+    PNG 的扫描线是「每行 1 个过滤字节 + width*3 字节 RGB」，
+    行数必须正好是 height —— 按像素逐个换行会得到结构非法的 PNG
+    （PIL 报 "unrecognized data stream contents"）。
+    """
     import zlib
 
-    raw = b''.join(
-        b'\x00' + bytes([(x * 7) % 256, (y * 5) % 256, 128]) for y in range(height) for x in range(width)
-    )
+    rows = []
+    for y in range(height):
+        row = bytearray(b'\x00')
+        for x in range(width):
+            row += bytes(((x * 7) % 256, (y * 5) % 256, 128))
+        rows.append(bytes(row))
+    raw = b''.join(rows)
 
     def chunk(tag, data):
         payload = tag + data
@@ -94,6 +103,36 @@ def make_broken_docx(path):
     Path(path).write_bytes(b'PK\x03\x04' + b'not-a-real-docx' * 8)
 
 
+def make_same_stem_samples(out):
+    """同名不同后缀的三个文件（回归用例：中间产物不得互相覆盖）。
+
+    期望合并后 4 页，页序 = 上传顺序 × 文件内页序：
+        同名素材.png   1 页 800×1200 px → 600×900 pt
+        同名素材.pdf   2 页 400×600、595.28×841.89 pt（原样沿用）
+        同名素材.docx  1 页 A4 横向 → 841.89×595.28 pt
+    """
+    from docx import Document
+    from docx.enum.section import WD_ORIENT
+    from docx.shared import Mm
+    from pypdf import PdfWriter
+
+    make_png(out / '同名素材.png', 800, 1200)
+
+    writer = PdfWriter()
+    for width, height in ((400, 600), (595.28, 841.89)):
+        writer.add_blank_page(width=width, height=height)
+    with open(out / '同名素材.pdf', 'wb') as handle:
+        writer.write(handle)
+
+    document = Document()
+    section = document.sections[0]
+    section.orientation = WD_ORIENT.LANDSCAPE
+    section.page_width = Mm(297)
+    section.page_height = Mm(210)
+    document.add_heading('同名不同后缀的 docx', level=1)
+    document.save(out / '同名素材.docx')
+
+
 def main():
     out = Path(sys.argv[1] if len(sys.argv) > 1 else 'samples')
     out.mkdir(parents=True, exist_ok=True)
@@ -103,6 +142,7 @@ def main():
     make_xlsx(out / '测试表格.xlsx')
     make_pptx(out / '测试幻灯片.pptx')
     make_broken_docx(out / '损坏文件.docx')
+    make_same_stem_samples(out)
     print('样例文件已生成到 {}'.format(out.resolve()))
 
 

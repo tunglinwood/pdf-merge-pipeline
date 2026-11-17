@@ -4,7 +4,7 @@ FastGPT 工作流「多文件上传自动合并PDF（保持原页面大小）」
 需求编号 **REQ-20261117-003 需求线 B**（multica 工单 TEAM-83）。
 
 - 工作流 appId：`6afbb78fd3ccf4253b34830a`（门户 https://x.huamedicine.com/chat?appId=6afbb78fd3ccf4253b34830a ）
-- 平台技能 skillId：`6afc239ed3ccf4253b37a9ec`（`pdf-merge-pipeline`）
+- 平台技能 skillId：`6afc6cd5d3ccf4253b38a81d`（`pdf-merge-pipeline`，v1.2；旧 `6afc239ed3ccf4253b37a9ec` 已随 v1.4 发布版删除）
 - 端到端实测报告：[docs/实测报告-REQ-20261117-003-B线.md](docs/实测报告-REQ-20261117-003-B线.md)
 
 ## 技能做什么
@@ -36,7 +36,10 @@ skills/pdf-merge-pipeline/
   config/pipeline.env.example  凭据样例（真实 pipeline.env 不入库）
 tools/
   make_samples.py              生成实测样例文件
+  build_skill_zip.py           把技能目录打成平台可导入的 zip（结构 skills/<技能名>/...）
   run_app_test.mjs             上传样例并跑真实工作流链路
+tests/
+  test_stem_collision.py       回归测试：同名不同后缀的文件不得互相覆盖、页序必须一致
 ```
 
 ## 打包与导入（技能内容改动必须「删旧重导」）
@@ -44,17 +47,18 @@ tools/
 平台侧只有 `update` 接口能改元数据，改内容不生效，所以改完内容按下面走：
 
 ```bash
-cd skills
-zip -r -X pdf-merge-pipeline.zip pdf-merge-pipeline -x '*.pyc' -x '*__pycache__*'
+python3 tools/build_skill_zip.py --source skills/pdf-merge-pipeline \
+    --env /path/to/pipeline.env --out pdf-merge-pipeline.zip
 ```
 
-平台导入时包内路径须为 `skills/pdf-merge-pipeline/...`（与已发布版本一致）。
+平台导入时包内路径须为 `skills/pdf-merge-pipeline/...`（脚本已按此结构打包）。
 导入顺序：**先删旧技能 → 再导入新包 → 把工作流 agent 节点的 `skills` 指向新 skillId → 发布 → `runtime/init`**。
 
 ## 本地自测
 
 ```bash
 python3 tools/make_samples.py samples
+python3 tests/test_stem_collision.py          # 同名不同后缀的回归测试（真实脚本跑）
 cd skills/pdf-merge-pipeline
 python3 scripts/merge_to_pdf.py --input-list ../../samples/files.json --out /tmp/merged.pdf --user-dir ../../samples
 ```

@@ -9,7 +9,7 @@
     1. 合并产物存在且页数 == 报告里的 total_pages；
     2. 合并产物逐页宽高 == 报告里的 merged_page_sizes（pt 级一致）；
     3. 交付链接是平台存储的长期链接（/api/system/file/d/...），不是沙箱 2 小时预览链接；
-    4. 交付链接可打开，Content-Type 为 application/pdf 且内容以 %PDF 开头；
+    4. 交付链接可打开，Content-Type 为 application/pdf、内容以 %PDF 开头，且字节数与上传结果一致；
     5. 每个文件的页数/逐页宽高/失败原因齐全（失败文件必须带 error）。
 
 最后输出一段 JSON：
@@ -93,12 +93,32 @@ def main():
             size_ok = upload.get('size') is None or len(body) == int(upload['size'])
         except Exception as exc:
             content_type = '打开失败：{}'.format(exc)
-        checks.append(check('download_link_openable', magic_ok,
+        checks.append(check('download_link_openable', magic_ok and size_ok,
                             'Content-Type={}，魔数={}，字节数一致={}'.format(content_type, magic_ok, size_ok)))
         checks.append(check('content_type_is_pdf', 'application/pdf' in content_type.lower(),
                             'Content-Type={}'.format(content_type)))
 
+    # 一致性校验：合并结果必须等于各文件页序拼接（页序 = 上传顺序 × 文件内页序）。
+    # 少了这一项，同名不同后缀的文件互相覆盖时不会被发现——
+    # 报告与产物各自自洽，但产物内容是错的。
     files = report.get('files') or []
+    expected_concat = [
+        size
+        for item in files
+        if item.get('status') == 'ok'
+        for size in (item.get('page_sizes_pt') or [])
+    ]
+    actual_concat = report.get('merged_page_sizes') or []
+    concat_ok = len(expected_concat) == len(actual_concat) and all(
+        abs(float(a.get('w', 0)) - float(b.get('w', 0))) <= 0.5
+        and abs(float(a.get('h', 0)) - float(b.get('h', 0))) <= 0.5
+        for a, b in zip(expected_concat, actual_concat)
+    )
+    checks.append(check('page_order_matches_files', concat_ok,
+                        '合并逐页宽高等于各文件页序拼接：期望 {} 页，实际 {} 页'.format(
+                            len(expected_concat), len(actual_concat))))
+
+
     missing = [item.get('name') for item in files
                if item.get('status') != 'ok' and not item.get('error')]
     checks.append(check('failed_files_named', not missing,
