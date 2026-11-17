@@ -98,7 +98,27 @@ def main():
         checks.append(check('content_type_is_pdf', 'application/pdf' in content_type.lower(),
                             'Content-Type={}'.format(content_type)))
 
+    # 一致性校验：合并结果必须等于各文件页序拼接（页序 = 上传顺序 × 文件内页序）。
+    # 少了这一项，同名不同后缀的文件互相覆盖时不会被发现——
+    # 报告与产物各自自洽，但产物内容是错的。
     files = report.get('files') or []
+    expected_concat = [
+        size
+        for item in files
+        if item.get('status') == 'ok'
+        for size in (item.get('page_sizes_pt') or [])
+    ]
+    actual_concat = report.get('merged_page_sizes') or []
+    concat_ok = len(expected_concat) == len(actual_concat) and all(
+        abs(float(a.get('w', 0)) - float(b.get('w', 0))) <= 0.5
+        and abs(float(a.get('h', 0)) - float(b.get('h', 0))) <= 0.5
+        for a, b in zip(expected_concat, actual_concat)
+    )
+    checks.append(check('page_order_matches_files', concat_ok,
+                        '合并逐页宽高等于各文件页序拼接：期望 {} 页，实际 {} 页'.format(
+                            len(expected_concat), len(actual_concat))))
+
+
     missing = [item.get('name') for item in files
                if item.get('status') != 'ok' and not item.get('error')]
     checks.append(check('failed_files_named', not missing,

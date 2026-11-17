@@ -114,7 +114,7 @@ def page_sizes(reader):
     return sizes
 
 
-def convert_pdf(src, out_dir, rules):
+def convert_pdf(src, out_dir, rules, tag=None):
     """PDF：原样沿用每一页。"""
     from pypdf import PdfReader, PdfWriter
 
@@ -125,25 +125,25 @@ def convert_pdf(src, out_dir, rules):
     writer = PdfWriter()
     for page in reader.pages:
         writer.add_page(page)
-    out = out_dir / (src.stem + '.pdf')
+    out = out_dir / ('{}_{}.pdf'.format(tag, src.stem) if tag else src.stem + '.pdf')
     with open(out, 'wb') as handle:
         writer.write(handle)
     return out, len(reader.pages), page_sizes(reader)
 
 
-def convert_image(src, out_dir, rules):
+def convert_image(src, out_dir, rules, tag=None):
     """图片：单页，页面宽高 = 像素宽高 × px_to_pt，不缩放、不裁剪、不加白边。"""
     from PIL import Image
 
     px_to_pt = float((rules.get('image') or {}).get('px_to_pt', 0.75))
     dpi = int((rules.get('image') or {}).get('dpi', round(72.0 / px_to_pt)))
-    out = out_dir / (src.stem + '.pdf')
+    out = out_dir / ('{}_{}.pdf'.format(tag, src.stem) if tag else src.stem + '.pdf')
     try:
         with Image.open(str(src)) as image:
             if image.mode not in ('RGB', 'RGBA', 'L', 'LA'):
                 image = image.convert('RGB')
             pixel_size = image.size
-            normalized = out_dir / (src.stem + '.normalized.png')
+            normalized = out_dir / ('{}_{}.normalized.png'.format(tag, src.stem) if tag else src.stem + '.normalized.png')
             # 归一化 DPI：源图自带的 DPI 元数据不得影响页面尺寸
             image.save(str(normalized), 'PNG', dpi=(dpi, dpi))
             expected = (round(pixel_size[0] * px_to_pt, 2), round(pixel_size[1] * px_to_pt, 2))
@@ -182,7 +182,7 @@ def find_soffice():
     return None
 
 
-def convert_office(src, out_dir, rules):
+def convert_office(src, out_dir, rules, tag=None):
     """Office：headless LibreOffice 按文档自身页面设置转换，保留纸张方向。"""
     soffice = find_soffice()
     if not soffice:
@@ -201,7 +201,7 @@ def convert_office(src, out_dir, rules):
             str(src),
         ]
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
-    produced = out_dir / (src.stem + '.pdf')
+    produced = out_dir / ('{}_{}.pdf'.format(tag, src.stem) if tag else src.stem + '.pdf')
     if not produced.exists():
         raw = (proc.stdout or proc.stderr or '').strip()
         # 去掉 LibreOffice 的无害告警行（如 javaldx），只保留真正的失败原因
@@ -215,15 +215,15 @@ def convert_office(src, out_dir, rules):
     return produced, len(reader.pages), page_sizes(reader)
 
 
-def convert_one(src, out_dir, rules):
+def convert_one(src, out_dir, rules, tag=None):
     ext = src.suffix.lower()
     kind = rules_mod.classify(ext, rules)
     if kind == 'pdf':
-        return 'pdf', convert_pdf(src, out_dir, rules)
+        return 'pdf', convert_pdf(src, out_dir, rules, tag)
     if kind == 'image':
-        return 'image', convert_image(src, out_dir, rules)
+        return 'image', convert_image(src, out_dir, rules, tag)
     if kind == 'office':
-        return 'office', convert_office(src, out_dir, rules)
+        return 'office', convert_office(src, out_dir, rules, tag)
     raise RuntimeError(rules_mod.message(rules, 'unsupported_type', ext=ext or '(无扩展名)'))
 
 
@@ -261,7 +261,9 @@ def convert_all(items, out_dir, user_dir, rules):
         try:
             src = resolve_source(item, user_dir, index, rules)
             entry['source_path'] = str(src)
-            kind, (pdf_path, pages, sizes) = convert_one(src, out_dir, rules)
+            kind, (pdf_path, pages, sizes) = convert_one(
+                src, out_dir, rules, '{:02d}'.format(index + 1)
+            )
             entry['kind'] = kind
             entry['pages'] = pages
             entry['page_sizes_pt'] = sizes
