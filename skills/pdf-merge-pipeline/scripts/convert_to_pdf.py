@@ -183,10 +183,19 @@ def find_soffice():
 
 
 def convert_office(src, out_dir, rules, tag=None):
-    """Office：headless LibreOffice 按文档自身页面设置转换，保留纸张方向。"""
+    """Office：headless LibreOffice 按文档自身页面设置转换，保留纸张方向。
+
+    LibreOffice 按「源文件名」输出 <stem>.pdf，与带序号的产物名不一致，
+    因此转换完成后要把 <stem>.pdf 改名成 <序号>_<stem>.pdf；
+    转换前先删掉同名的旧产物，避免本轮转换失败时把上一轮的残留文件当成结果。
+    """
     soffice = find_soffice()
     if not soffice:
         raise RuntimeError(rules_mod.message(rules, 'no_office_engine'))
+
+    plain = out_dir / (src.stem + '.pdf')
+    if plain.exists():
+        plain.unlink()
 
     with tempfile.TemporaryDirectory() as profile:
         cmd = [
@@ -201,14 +210,20 @@ def convert_office(src, out_dir, rules, tag=None):
             str(src),
         ]
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=420)
-    produced = out_dir / ('{}_{}.pdf'.format(tag, src.stem) if tag else src.stem + '.pdf')
-    if not produced.exists():
+    if not plain.exists():
         raw = (proc.stdout or proc.stderr or '').strip()
         # 去掉 LibreOffice 的无害告警行（如 javaldx），只保留真正的失败原因
         lines = [line.strip() for line in raw.splitlines()
                  if line.strip() and not line.strip().lower().startswith('warning:')]
         detail = ' / '.join(lines[-2:])[:300] if lines else raw[:300]
         raise RuntimeError(rules_mod.message(rules, 'office_convert_failed', code=proc.returncode, detail=detail))
+
+    produced = out_dir / ('{}_{}.pdf'.format(tag, src.stem) if tag else src.stem + '.pdf')
+    if produced != plain:
+        if produced.exists():
+            produced.unlink()
+        plain.replace(produced)
+
     from pypdf import PdfReader
 
     reader = PdfReader(str(produced))

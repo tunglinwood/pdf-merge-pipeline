@@ -79,23 +79,32 @@ def run_pipeline(work_dir, names):
 
 def main():
     names = ['a.png', 'a.pdf', 'a.docx']
+    # 独立算出的期望值：图片 800×1200 px × 0.75；PDF 两页原样；docx A4 横向。
+    # 不依赖报告里的数字，报告自己出错时也能发现。
+    expected = [
+        {'w': 600.0, 'h': 900.0},
+        {'w': 400.0, 'h': 600.0},
+        {'w': 595.28, 'h': 841.89},
+        {'w': 841.89, 'h': 595.28},
+    ]
     with tempfile.TemporaryDirectory() as tmp:
         work_dir = Path(tmp)
         build_samples(work_dir / 'user_files')
         merged, report = run_pipeline(work_dir, names)
 
         data = json.loads(report.read_text(encoding='utf-8'))
-        expected = [
-            size
-            for item in data['files']
-            if item.get('status') == 'ok'
-            for size in (item.get('page_sizes_pt') or [])
-        ]
         actual = data.get('merged_page_sizes') or []
+        failed = [
+            '{}：{}'.format(item.get('name'), item.get('error'))
+            for item in data['files']
+            if item.get('status') != 'ok'
+        ]
 
         failures = []
+        if failed:
+            failures.append('有文件转换失败：{}'.format('；'.join(failed)))
         if len(expected) != len(actual):
-            failures.append('页数不一致：各文件拼接 {} 页，合并产物 {} 页'.format(len(expected), len(actual)))
+            failures.append('页数不一致：期望 {} 页，合并产物 {} 页'.format(len(expected), len(actual)))
         else:
             for index, (want, got) in enumerate(zip(expected, actual), 1):
                 if abs(float(want['w']) - float(got['w'])) > 0.5 or abs(float(want['h']) - float(got['h'])) > 0.5:
@@ -103,13 +112,17 @@ def main():
                         index, want['w'], want['h'], got['w'], got['h']))
                     break
 
-        total_expected = sum(int(item.get('pages') or 0) for item in data['files'] if item.get('status') == 'ok')
+        total_expected = sum(int(item.get('pages') or 0) for item in data['files'])
         if int(data.get('total_pages') or 0) != total_expected:
             failures.append('总页数不符：期望 {}，实际 {}'.format(total_expected, data.get('total_pages')))
+        if int(data.get('total_pages') or 0) != len(expected):
+            failures.append('总页数不符：期望 {}，实际 {}'.format(len(expected), data.get('total_pages')))
 
-        print('各文件页序拼接：{}'.format(json.dumps(expected, ensure_ascii=False)))
+        print('期望逐页宽高：{}'.format(json.dumps(expected, ensure_ascii=False)))
         print('合并产物逐页宽高：{}'.format(json.dumps(actual, ensure_ascii=False)))
         print('总页数：{}（各文件页数之和 {}）'.format(data.get('total_pages'), total_expected))
+        if failed:
+            print('转换失败：{}'.format('；'.join(failed)))
 
         if failures:
             for message in failures:

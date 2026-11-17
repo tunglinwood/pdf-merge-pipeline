@@ -9,7 +9,7 @@
     1. 合并产物存在且页数 == 报告里的 total_pages；
     2. 合并产物逐页宽高 == 报告里的 merged_page_sizes（pt 级一致）；
     3. 交付链接是平台存储的长期链接（/api/system/file/d/...），不是沙箱 2 小时预览链接；
-    4. 交付链接可打开，Content-Type 为 application/pdf 且内容以 %PDF 开头；
+    4. 交付链接可打开，Content-Type 为 application/pdf、内容以 %PDF 开头，且字节数与上传结果一致；
     5. 每个文件的页数/逐页宽高/失败原因齐全（失败文件必须带 error）。
 
 最后输出一段 JSON：
@@ -93,7 +93,7 @@ def main():
             size_ok = upload.get('size') is None or len(body) == int(upload['size'])
         except Exception as exc:
             content_type = '打开失败：{}'.format(exc)
-        checks.append(check('download_link_openable', magic_ok,
+        checks.append(check('download_link_openable', magic_ok and size_ok,
                             'Content-Type={}，魔数={}，字节数一致={}'.format(content_type, magic_ok, size_ok)))
         checks.append(check('content_type_is_pdf', 'application/pdf' in content_type.lower(),
                             'Content-Type={}'.format(content_type)))
