@@ -4,7 +4,7 @@ FastGPT 工作流「多文件上传自动合并PDF（保持原页面大小）」
 需求编号 **REQ-20261117-003 需求线 B**（multica 工单 TEAM-83）。
 
 - 工作流 appId：`6afbb78fd3ccf4253b34830a`（门户 https://x.huamedicine.com/chat?appId=6afbb78fd3ccf4253b34830a ）
-- 平台技能 skillId：`6afc6cd5d3ccf4253b38a81d`（`pdf-merge-pipeline`，v1.2；旧 `6afc239ed3ccf4253b37a9ec` 已随 v1.4 发布版删除）
+- 平台技能 skillId：**以工作流 `app_detail` 里 `mergeAgent` 节点实际引用的 id 为准**（2026-11-17T16:56 实测为 `6afc7aced3ccf4253b38c085`，v1.2）。平台规定技能内容改动必须「删旧重导」，而技能名在 parentId+name+teamId 上有唯一索引，所以**每次改技能都会产生新的 skillId**，旧 id 变成墓碑（`skill/detail` 返回 `509000 skillUnExist`）。已知墓碑：`6afc239ed3ccf4253b37a9ec`（v1.1）、`6afc6cd5d3ccf4253b38a81d`（v1.3）。
 - 端到端实测报告：[docs/实测报告-REQ-20261117-003-B线.md](docs/实测报告-REQ-20261117-003-B线.md)
 
 ## 技能做什么
@@ -52,7 +52,20 @@ python3 tools/build_skill_zip.py --source skills/pdf-merge-pipeline \
 ```
 
 平台导入时包内路径须为 `skills/pdf-merge-pipeline/...`（脚本已按此结构打包）。
-导入顺序：**先删旧技能 → 再导入新包 → 把工作流 agent 节点的 `skills` 指向新 skillId → 发布 → `runtime/init`**。
+导入顺序（技能名唯一索引 ⇒ 必须先删同名旧技能；**改绑与授权要跟改内容一起做完**）：
+
+1. `DELETE /api/core/ai/skill/delete?skillId=<旧 id>` —— 删旧
+2. `POST /api/core/ai/skill/import` —— 导入新包，得到新 skillId
+3. `fastgpt_publish_workflow_prompt` 把工作流 agent 节点的 `skills` 改成新 skillId 并发布
+4. `POST /api/proApi/core/ai/skill/collaborator/update` 把需求方加为新技能的 manager（保留 root 的管理权限）
+5. `POST /api/core/ai/skill/runtime/init` —— 新技能初始化 runtime
+6. **复查三处**（第 1~3 步之间工作流会短暂指向已删除的 skillId，这一步就是确认没有悬空引用）：
+   - `GET /api/core/ai/skill/detail?skillId=<新 id>` → `teamId`/`tmbId` 非空、`creationStatus: ready`
+   - `GET /api/proApi/core/ai/skill/collaborator/list?skillId=<新 id>` → 需求方在协作者列表里
+   - `app_detail` → agent 节点引用的 skillId 与线上一致
+
+> 只改技能、不改绑、不授权，会留下「技能记录是墓碑、工作流指向已删 id、需求方无法被授权」的断链
+> （2026-11-17 出现过一次，见 `docs/实测报告-REQ-20261117-003-B线.md` 第 8 节）。
 
 ## 本地自测
 
