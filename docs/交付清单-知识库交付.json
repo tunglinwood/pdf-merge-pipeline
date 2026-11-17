@@ -1,0 +1,74 @@
+{
+  "datasetId": "6afc262ed3ccf4253b37b158",
+  "datasetName": "pdf-merge-delivery-20261117",
+  "deliveryFolder": {
+    "id": "6afc7e2bd3ccf4253b3921b6",
+    "name": "B线交付物（REQ-20261117-003 · 2026-11-17）"
+  },
+  "archiveFolder": {
+    "id": "6afc7e2bd3ccf4253b3921c8",
+    "name": "历史产物（1px=1pt 旧口径 · 已废弃）"
+  },
+  "uploaded": [
+    {
+      "collectionId": "6afc7e2bd3ccf4253b39220c",
+      "filename": "合并结果-case1-4页-混合上传-png-多页pdf-docx.pdf",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/a2230d2ce59241c6bc3af64ffdbbe02d.pdf",
+      "bytes": 35962,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/合并结果-实测-case1.pdf",
+      "folder": "6afc7e2bd3ccf4253b3921b6"
+    },
+    {
+      "collectionId": "6afc7e2bd3ccf4253b392264",
+      "filename": "合并结果-case2-2页-含失败文件-点名原因.pdf",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/bc2c6f92aaec44cdbd0102a07bd03d99.pdf",
+      "bytes": 35706,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/合并结果-实测-case2.pdf",
+      "folder": "6afc7e2bd3ccf4253b3921b6"
+    },
+    {
+      "collectionId": "6afc7e2cd3ccf4253b3922b6",
+      "filename": "合并结果-case3-3页-Excel横向-PPT16比9.pdf",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/ac2f6db499db4d37a4c42c6c2fc12f83.pdf",
+      "bytes": 30016,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/合并结果-实测-case3.pdf",
+      "folder": "6afc7e2bd3ccf4253b3921b6"
+    },
+    {
+      "collectionId": "6afc7e2cd3ccf4253b39230c",
+      "filename": "需求说明书-REQ-20261117-003-Word版.docx",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/b2df3f0819ce49b4a3179c985dc5e326.docx",
+      "bytes": 30020,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/需求说明书.docx",
+      "folder": "6afc7e2bd3ccf4253b3921b6"
+    },
+    {
+      "collectionId": "6afc7e2cd3ccf4253b392362",
+      "filename": "实测报告-REQ-20261117-003-B线.md",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/e5370747e3374fe0a8e70582b2a2df94.md",
+      "bytes": 7782,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/pdf-merge-pipeline/docs/实测报告-REQ-20261117-003-B线.md",
+      "folder": "6afc7e2bd3ccf4253b3921b6"
+    },
+    {
+      "collectionId": "6afc7e2cd3ccf4253b3923bb",
+      "filename": "旧口径合并结果-5页-第1页1200x800pt-20261117T100319Z-已废弃.pdf",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/ded79d7b2bce49b3aa15f54451883bd6.pdf",
+      "bytes": 35499,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/existing_6afc2667d3ccf4253b37b1f9.bin",
+      "folder": "6afc7e2bd3ccf4253b3921c8"
+    },
+    {
+      "collectionId": "6afc7e2dd3ccf4253b39240d",
+      "filename": "旧口径合并结果-5页-第1页1200x800pt-20261117T100457Z-已废弃.pdf",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/460662fd8fb6468f83646d811ccc8b25.pdf",
+      "bytes": 35499,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/existing_6afc26c9d3ccf4253b37b2fc.bin",
+      "folder": "6afc7e2bd3ccf4253b3921c8"
+    }
+  ],
+  "links": {
+    "folder": "https://x.huamedicine.com/dataset/detail?datasetId=6afc262ed3ccf4253b37b158&currentTab=collectionCard&parentId=6afc7e2bd3ccf4253b3921b6",
+    "archiveFolder": "https://x.huamedicine.com/dataset/detail?datasetId=6afc262ed3ccf4253b37b158&currentTab=collectionCard&parentId=6afc7e2bd3ccf4253b3921c8"
+  }
+}

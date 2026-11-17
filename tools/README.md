@@ -29,3 +29,22 @@ node tools/run_app_test.mjs <appId> <输出前缀> <文件1> <文件2> ...
 脚本用 `node:https` 直连，不受 `fetch` 300 秒响应头超时限制（沙箱装 LibreOffice 时整轮可能跑 3~5 分钟）。
 
 产出：`<前缀>_uploaded.json`（上传结果）、`<前缀>_result.json`（原始回复与耗时）、控制台里的应用回复原文。
+
+## upload_delivery.mjs / verify_delivery.py（知识库交付）
+
+把交付物落到 FastGPT 知识库的文件集合，并实测「需求方能打开、能下载」。
+
+```bash
+node tools/upload_delivery.mjs --dataset <datasetId> --folder "B线交付物（…）" \
+  --file "/path/合并结果-case1.pdf::合并结果-case1-4页-混合上传-png-多页pdf-docx.pdf"
+
+FASTGPT_TOKEN=<fastgpt_token> python3 tools/verify_delivery.py --manifest delivery_manifest.json
+```
+
+要点：
+
+- 条目用 **`trainingType=backup`**（只存文件、不做向量训练）。默认 chunk 模式对「几乎无文本层」的合并 PDF
+  会训练失败，条目在 `collection/read` / `collection/delete` 上返回 `501003 unExistCollection`（列表看得到、打不开）；
+- 校验要**匿名 GET** 条目原文（不带登录态），确认需求方点开就能下载，而不是只在我自己的会话里能取到；
+- 正式交付给需求方的是**知识库集合链接 + 条目 id**，不是 `/api/system/file/d/...` 临时直链（后者与发起会话绑定，
+  需求方打开会得到 `HTTP 500 / 507003 unAuthFile`）。
