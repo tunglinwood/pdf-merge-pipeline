@@ -56,10 +56,17 @@ python3 scripts/merge_to_pdf.py --input-list files.json --out merged.pdf --repor
 ```bash
 cd /workspace/projects/<版本号>/skills/pdf-merge-pipeline
 set -a; . ./config/pipeline.env; set +a
-python3 scripts/upload_result.py merged.pdf --filename 合并结果.pdf
+python3 scripts/upload_result.py merged.pdf --filename 合并结果.pdf --chat-id <对话ID>
 ```
 
-最后一行输出是一段 JSON：`download_link`、`filename`、`size`、`verified`。
+`<对话ID>` = 你上下文里「当前沙盒的工作目录」的最后一段（例如工作目录是
+`/workspace/sessions/abc123`，就传 `--chat-id abc123`）；脚本在拿不到时会自动探测
+`/workspace/sessions/` 下的会话目录。
+
+**为什么要带 `--chat-id`**：这样合并结果会作为**对话文件**存进本次对话，用户在自己的会话里
+随时能打开、重新下载；不带的话只能存成临时文件，那个链接有时效（过期后打不开）。
+
+最后一行输出是一段 JSON：`download_link`、`filename`、`size`、`verified`、`storage`（`chat` 或 `temp`）。
 **`download_link` 才是给用户的交付链接**；不要把 API Key、预签名上传地址、脚本日志贴给用户。
 
 ### ④ 校验并出最终报告

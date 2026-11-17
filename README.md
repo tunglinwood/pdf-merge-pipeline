@@ -4,7 +4,7 @@ FastGPT 工作流「多文件上传自动合并PDF（保持原页面大小）」
 需求编号 **REQ-20261117-003 需求线 B**（multica 工单 TEAM-83）。
 
 - 工作流 appId：`6afbb78fd3ccf4253b34830a`（门户 https://x.huamedicine.com/chat?appId=6afbb78fd3ccf4253b34830a ）
-- 平台技能 skillId：`6afc6cd5d3ccf4253b38a81d`（`pdf-merge-pipeline`，v1.2；旧 `6afc239ed3ccf4253b37a9ec` 已随 v1.4 发布版删除）
+- 平台技能 skillId：`6afc7aced3ccf4253b38c085`（`pdf-merge-pipeline`，v1.3；旧 `6afc6cd5d3ccf4253b38a81d`、`6afc239ed3ccf4253b37a9ec` 已依次删除）
 - 端到端实测报告：[docs/实测报告-REQ-20261117-003-B线.md](docs/实测报告-REQ-20261117-003-B线.md)
 
 ## 技能做什么
@@ -30,7 +30,7 @@ skills/pdf-merge-pipeline/
   scripts/convert_to_pdf.py    步骤 1：逐个转 PDF → convert_manifest.json
   scripts/merge_pdfs.py        步骤 2：按上传顺序合并 → merged.pdf / merged_report.json
   scripts/merge_to_pdf.py      入口：步骤 1 + 步骤 2（与既有命令兼容）
-  scripts/upload_result.py     步骤 3：上传到平台存储 → upload_result.json
+  scripts/upload_result.py     步骤 3：上传到平台存储（对话文件优先）→ upload_result.json
   scripts/verify_result.py     步骤 4：校验产物与链接 → merged_result.json
   config/page_rules.json       页面尺寸换算规则 / 文件类型白名单 / 失败原因文案（可编辑）
   config/pipeline.env.example  凭据样例（真实 pipeline.env 不入库）
