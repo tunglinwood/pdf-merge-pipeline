@@ -43,10 +43,10 @@
       "folder": "6afc7e2bd3ccf4253b3921b6"
     },
     {
-      "collectionId": "6afc810dd3ccf4253b397cb7",
+      "collectionId": "6afc872ad3ccf4253b39a21f",
       "filename": "实测报告-REQ-20261117-003-B线.md",
-      "key": "dataset/6afc262ed3ccf4253b37b158/file/8fab1f4cbe15429f94b75018ab3fabdc.md",
-      "bytes": 17647,
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/3f953d065ce0453486e99337ce617f0c.md",
+      "bytes": 20745,
       "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/pdf-merge-pipeline/docs/实测报告-REQ-20261117-003-B线.md",
       "folder": "6afc7e2bd3ccf4253b3921b6"
     },
@@ -65,10 +65,30 @@
       "bytes": 35499,
       "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/existing_6afc26c9d3ccf4253b37b2fc.bin",
       "folder": "6afc7e2bd3ccf4253b3921c8"
+    },
+    {
+      "collectionId": "6afc86ced3ccf4253b39a0fe",
+      "filename": "交付说明.md",
+      "key": "dataset/6afc262ed3ccf4253b37b158/file/f5502e21622742b0bcab11eaad2133a9.md",
+      "bytes": 3811,
+      "local": "/home/huasmex/multica_workspaces/team-40e3c7af665f/team-83-76d95d816cb3/workdir/交付说明.md",
+      "folder": "6afc7e2bd3ccf4253b3921b6"
     }
   ],
   "links": {
     "folder": "https://x.huamedicine.com/dataset/detail?datasetId=6afc262ed3ccf4253b37b158&currentTab=collectionCard&parentId=6afc7e2bd3ccf4253b3921b6",
     "archiveFolder": "https://x.huamedicine.com/dataset/detail?datasetId=6afc262ed3ccf4253b37b158&currentTab=collectionCard&parentId=6afc7e2bd3ccf4253b3921c8"
+  },
+  "liveBinding": {
+    "workflowAppId": "6afbb78fd3ccf4253b34830a",
+    "publishedVersionId": "6afc7b29d3ccf4253b38c357",
+    "skillId": "6afc7aced3ccf4253b38c085",
+    "skillName": "pdf-merge-pipeline",
+    "skillVersion": "v1.2",
+    "skillTeamId": "675e687b4c15dac184624b00",
+    "skillOwnerTmbId": "675e687b4c15dac184624b05",
+    "requesterTmbId": "6afa9f6eef5c774a12910a8d",
+    "requesterRole": "manage(1)",
+    "tombstonedSkillId": "6afc239ed3ccf4253b37a9ec"
   }
 }
